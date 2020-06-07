@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# Copy this to /etc/dhcp/dhclient-exit-hooks.d
+# You may want to put a copy in /config/user-data as well
+# See: https://www.enom.com/help/faq_dynamicdns.asp
+
+HOST=$(hostname)
+DOMAIN=...your Enom-registered domain...
+PASSWORD=...your Enom domain password...
+
+case $reason in
+	BOUND | RENEW | REBIND)
+		/usr/bin/curl -s "https://reseller.enom.com/interface.asp?Command=SetDNSHost&HostName=${HOST}&Zone=${DOMAIN}&DomainPassword=${PASSWORD}" > /tmp/enom-ddns.log 2>&1
+		;;
+	*)
+		;;
+esac
