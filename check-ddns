@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Place this script in /config/scripts:
+#   ~$ sudo cp check-ddns /config/scripts
+#   ~$ sudo chown root.root /config/scripts/check-ddns
+#   ~$ sudo chmod 755 /config/scripts/check-ddns
+
+SRC_DIR=/config/user-data
+DST_DIR=/etc/dhcp/dhclient-exit-hooks.d
+
+if [ -s "${SRC_DIR}/enom-ddns" ]; then
+	if [ ! -s "${DST_DIR}/enom-ddns" ]; then
+		cp -f "${SRC_DIR}/enom-ddns" "${DST_DIR}/enom-ddns"
+		if [ -w /var/log/messages ]; then
+			echo "$(date +'%h %e %T')" `hostname` "check-ddns[$$]: replaced ${DST_DIR}/enom-ddns" >> /var/log/messages 
+		fi
+	fi
+fi

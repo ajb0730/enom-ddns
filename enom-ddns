@@ -9,9 +9,20 @@ DOMAIN=...your Enom-registered domain...
 PASSWORD=...your Enom domain password...
 
 case $reason in
-	BOUND | RENEW | REBIND)
+        BOUND|RENEW|REBIND|REBOOT)
 		/usr/bin/curl -s "https://reseller.enom.com/interface.asp?Command=SetDNSHost&HostName=${HOST}&Zone=${DOMAIN}&DomainPassword=${PASSWORD}" > /tmp/enom-ddns.log 2>&1
+		if [ -w /var/log/messages ]; then
+			/bin/grep -v -e '^;' < /tmp/enom-ddns.log | sed -E -e 's/^/export /g' -e 's/=(.+)\r/="\1"/g' > /tmp/enom-ddns.vars
+			source /tmp/enom-ddns.vars
+			rm -f /tmp/enom-ddns.vars
+			if [ "${ErrCount}" -eq 0 ]; then
+				echo "$(date +'%h %e %T')" `hostname` "enom-ddns[$$]: set ${HOST}.${DOMAIN} to ${IP}" >> /var/log/messages;
+			else
+				echo "$(date +'%h %e %T')" `hostname` "enom-ddns[$$]: FAILED to set ${HOST}.${DOMAIN}" >> /var/log/messages;
+			fi
+		fi
 		;;
 	*)
+                echo "$(date) ${reason} ${HOST}.${DOMAIN}" >> /tmp/enom-ddns.log
 		;;
 esac
